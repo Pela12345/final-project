@@ -23,41 +23,17 @@ import sklearn
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+import pickle
 import string
 import warnings
 warnings.filterwarnings("ignore")
-
-question = [str(input("¿Que quieres de España?: "))]
-
-def extract_pdf(paths):
-    all_parties = []
-    for path in paths:
-        party_pdf = open(path, mode='rb')
-        party = PyPDF2.PdfFileReader(party_pdf)
-        pages = party.getNumPages()
-        all_text = []
-        for page in range(pages):
-            info = party.getPage(page)
-            text = info.extractText()
-            text_clean = re.sub('\n', '', text)
-            text_clean = re.sub("˜", "fi", text_clean)
-            text_clean = re.sub("-", "", text_clean)
-            # text_clean=re.sub("á", "a", text_clean)
-            # text_clean=re.sub("é", "e", text_clean)
-            # text_clean=re.sub("í", "i", text_clean)
-            # text_clean=re.sub("ó", "o", text_clean)
-            # text_clean=re.sub("ú", "u", text_clean)
-            all_text.append(text_clean)
-        all_parties.append(str(all_text))
-
-    return all_parties
 
 def spacy_tokenizer(sentence):
     nlp=spacy.load('es')
     parser = Spanish()
     spacy_stopwords = spacy.lang.es.stop_words.STOP_WORDS
     STOPWORDS=list(spacy_stopwords)
-    STOPWORDS.extend(('y','a','u','o','e'))
+    STOPWORDS.extend(('y','a','u','o','e','quiero'))
     tokens = parser(sentence)
     filtered_tokens = []
     for word in tokens:
@@ -72,31 +48,51 @@ def spacy_tokenizer(sentence):
             filtered_tokens.append(lemma)
     return filtered_tokens
 
-
-def tfdif_vect(parties, text):
-    tfidf_vectorizer = TfidfVectorizer(tokenizer=spacy_tokenizer)
-    tfidf_matrix = tfidf_vectorizer.fit_transform(parties)
-    text_transformed=tfidf_vectorizer.transform(text)
-    return cosine_similarity(tfidf_matrix, text_transformed)
+def tfdif_vect(matrix, model, text):
+    text_transformed=model.transform(text)
+    return cosine_similarity(matrix, text_transformed)
 
 def to_percent(x):
     x = (x / (x.sum())) * 100
     return x
 
-def plot_result(result):
+def plot_result(result, question):
+    color = ['purple', 'red', 'orange', 'blue', 'green']
     df = pd.DataFrame(result, index=party_names)
-    df.plot(kind='bar', colors = 'mrybg')
-    plt.title('Recomendación de Voto')
-    plt.xlabel('Partidos')
-    plt.ylabel('Porcentaje')
-    plt.ylim((0, 50))
-    return plt.show()
-
+    plt.figure(figsize=(10, 8))
+    plt.bar(party_names, df[0], color=color)
+    plt.title('Recomendación de Voto').set_fontsize(23)
+    plt.xlabel('Partidos').set_fontsize(16)
+    plt.ylabel('Porcentaje').set_fontsize(16)
+    x = [i for i in np.where(result== np.amax(result))[0]]
+    v = int(re.sub('[][]', '', str(x)))
+    plt.text(-0.3, 87, question, style='italic',
+             bbox={'facecolor': 'grey', 'alpha': 0.5, 'pad': 6}).set_fontsize(16)
+    plt.text(1.2, 67, party_names[v], style='italic',
+             bbox={'facecolor': color[v], 'alpha': 0.5, 'pad': 8}).set_fontsize(60)
+    plt.ylim((0, 75))
+    plt.tick_params(axis='both', which='major', labelsize=20)
+    plt.tick_params(axis='both', which='minor', labelsize=28)
+    # plt.imshow(y)
+    plt.show()
 
 
 party_names=['Podemos','PSOE','Ciudadanos', 'PP','Vox']
 path_list=['data/podemos.pdf','data/psoe.pdf','data/ciudadanos.pdf','data/pp.pdf','data/vox.pdf']
-parties=extract_pdf(path_list)
-similarities=tfdif_vect(parties, question)
-percentages=to_percent(similarities)
-plot_result(percentages)
+
+tfidf_vectorizer_pkl = open('tfidf_vectorizer.Wed.pkl', 'rb')
+tfidf_vectorizer = pickle.load(tfidf_vectorizer_pkl)
+
+tfidf_matrix_pkl = open('tfidf_matrix.Wed.pkl', 'rb')
+tfidf_matrix = pickle.load(tfidf_matrix_pkl)
+
+while True:
+    question = [str(input("¿Que quieres de España?: "))]
+    similarities = tfdif_vect(tfidf_matrix, tfidf_vectorizer, question)
+    percentages=to_percent(similarities)
+    plot_result(percentages,question)
+
+
+
+
+
