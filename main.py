@@ -23,6 +23,7 @@ import sklearn
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+import speech_recognition as sr
 import pickle
 import string
 import warnings
@@ -59,23 +60,38 @@ def to_percent(x):
 def plot_result(result, question):
     color = ['purple', 'red', 'orange', 'blue', 'green']
     df = pd.DataFrame(result, index=party_names)
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(15, 11))
     plt.bar(party_names, df[0], color=color)
-    plt.title('Recomendación de Voto').set_fontsize(23)
+    #plt.title('Recomendación de Voto').set_fontsize(23)
     plt.xlabel('Partidos').set_fontsize(16)
     plt.ylabel('Porcentaje').set_fontsize(16)
     x = [i for i in np.where(result== np.amax(result))[0]]
     v = int(re.sub('[][]', '', str(x)))
-    plt.text(-0.3, 87, question, style='italic',
+    plt.text(-0.4, 104, question, style='italic',
              bbox={'facecolor': 'grey', 'alpha': 0.5, 'pad': 6}).set_fontsize(16)
-    plt.text(1.2, 67, party_names[v], style='italic',
+    plt.text(1.2, 80, party_names[v], style='italic',
              bbox={'facecolor': color[v], 'alpha': 0.5, 'pad': 8}).set_fontsize(60)
-    plt.ylim((0, 75))
+    plt.ylim((0, 95))
     plt.tick_params(axis='both', which='major', labelsize=20)
     plt.tick_params(axis='both', which='minor', labelsize=28)
     # plt.imshow(y)
-    plt.show()
+    plt.show(block=False)
 
+def reconocimiento_voz():                                   # graba audio
+    r=sr.Recognizer()
+    with sr.Microphone() as s:
+        print('Escuchando...')
+        r.adjust_for_ambient_noise(s)
+        audio=r.listen(s,timeout=12)
+
+    datos=''  # reconocimiento de voz
+    try:      # Usa API key por defecto, para usar otra: `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
+        datos=r.recognize_google(audio, language='es-ES')
+    except sr.UnknownValueError:
+        print("Google Speech Recognition no ha podido reconocer el audio.")
+    except sr.RequestError as e:
+        print("No hay respuesta desde el servicio de Google Speech Recognition; {0}".format(e))
+    return datos
 
 party_names=['Podemos','PSOE','Ciudadanos', 'PP','Vox']
 path_list=['data/podemos.pdf','data/psoe.pdf','data/ciudadanos.pdf','data/pp.pdf','data/vox.pdf']
@@ -87,10 +103,18 @@ tfidf_matrix_pkl = open('tfidf_matrix.Wed.pkl', 'rb')
 tfidf_matrix = pickle.load(tfidf_matrix_pkl)
 
 while True:
-    question = [str(input("¿Que quieres de España?: "))]
-    similarities = tfdif_vect(tfidf_matrix, tfidf_vectorizer, question)
-    percentages=to_percent(similarities)
-    plot_result(percentages,question)
+    try:
+        print("¿Que quieres de España?")
+        data=reconocimiento_voz()
+        #question = [str(input("¿Que quieres de España?: "))]
+        question = [str(data)]
+        similarities = tfdif_vect(tfidf_matrix, tfidf_vectorizer, question)
+        percentages=to_percent(similarities)
+        plot_result(percentages,question)
+    except KeyboardInterrupt:
+        print(\n'exiting...')
+        plt.close('all')
+        break
 
 
 
