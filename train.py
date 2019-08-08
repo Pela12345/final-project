@@ -59,9 +59,9 @@ def spacy_tokenizer(sentence):
     return filtered_tokens
 
 party_names=['Podemos','PSOE','Ciudadanos', 'PP','Vox']
-path_list=['data/podemos.pdf','data/psoe.pdf','data/ciudadanos.pdf','data/pp.pdf','data/vox.pdf']
+path_list=['data/podemos.pdf','data/psoe.pdf','data/ciudadanosV2.pdf','data/pp.pdf','data/vox.pdf']
 parties=extract_pdf(path_list)
-tfidf_vectorizer = TfidfVectorizer(tokenizer=spacy_tokenizer, ngram_range=(1,2) )
+tfidf_vectorizer = TfidfVectorizer(tokenizer=spacy_tokenizer, ngram_range=(1,3) )
 tfidf_matrix = tfidf_vectorizer.fit_transform(parties)
 
 #tfidf_vectorizer_pkl_filename = 'tfidf_vectorizer.Wed.pkl'

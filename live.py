@@ -118,3 +118,11 @@ while True:
         print('\nexiting...')
         plt.close('all')
         break
+while True:
+    question = [str(input("¿Que quieres de España?: "))]
+    similarities = tfdif_vect(tfidf_matrix, tfidf_vectorizer, question)
+    percentages=to_percent(similarities)
+    try:
+        plot_result(percentages,question)
+    except ValueError:
+        print('No encuentro ningun partido apropiado, VOTA EN BLANCO')

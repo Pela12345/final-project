@@ -23,7 +23,6 @@ import sklearn
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-import speech_recognition as sr
 import pickle
 import string
 import warnings
@@ -67,6 +66,9 @@ def plot_result(result, question):
     plt.ylabel('Porcentaje').set_fontsize(16)
     x = [i for i in np.where(result== np.amax(result))[0]]
     v = int(re.sub('[][]', '', str(x)))
+
+
+
     plt.text(-0.4, 104, question, style='italic',
              bbox={'facecolor': 'grey', 'alpha': 0.5, 'pad': 6}).set_fontsize(16)
     plt.text(1.2, 80, party_names[v], style='italic',
@@ -75,23 +77,8 @@ def plot_result(result, question):
     plt.tick_params(axis='both', which='major', labelsize=20)
     plt.tick_params(axis='both', which='minor', labelsize=28)
     # plt.imshow(y)
-    plt.show(block=False)
+    plt.show()
 
-def reconocimiento_voz():                                   # graba audio
-    r=sr.Recognizer()
-    with sr.Microphone() as s:
-        print('Escuchando...')
-        r.adjust_for_ambient_noise(s)
-        audio=r.listen(s,timeout=12)
-
-    datos=''  # reconocimiento de voz
-    try:      # Usa API key por defecto, para usar otra: `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
-        datos=r.recognize_google(audio, language='es-ES')
-    except sr.UnknownValueError:
-        print("Google Speech Recognition no ha podido reconocer el audio.")
-    except sr.RequestError as e:
-        print("No hay respuesta desde el servicio de Google Speech Recognition; {0}".format(e))
-    return datos
 
 party_names=['Podemos','PSOE','Ciudadanos', 'PP','Vox']
 path_list=['data/podemos.pdf','data/psoe.pdf','data/ciudadanos.pdf','data/pp.pdf','data/vox.pdf']
@@ -103,18 +90,13 @@ tfidf_matrix_pkl = open('tfidf_matrix.Wed.pkl', 'rb')
 tfidf_matrix = pickle.load(tfidf_matrix_pkl)
 
 while True:
-    #try:
-    print("¿Que quieres de España?")
-    data=reconocimiento_voz()
-    #question = [str(input("¿Que quieres de España?: "))]
-    question = [str(data)]
+    question = [str(input("¿Que quieres de España?: "))]
     similarities = tfdif_vect(tfidf_matrix, tfidf_vectorizer, question)
     percentages=to_percent(similarities)
-    plot_result(percentages,question)
-    '''except KeyboardInterrupt:
-        print('\nexiting...')
-        plt.close('all')
-        break'''
+    try:
+        plot_result(percentages,question)
+    except ValueError:
+        print('No encuentro ningun partido apropiado, VOTA EN BLANCO')
 
 
 
