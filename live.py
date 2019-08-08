@@ -22,7 +22,6 @@ from spacy.lang.es.stop_words import STOP_WORDS
 import sklearn
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-
 import speech_recognition as sr
 import pickle
 import string
@@ -34,7 +33,7 @@ def spacy_tokenizer(sentence):
     parser = Spanish()
     spacy_stopwords = spacy.lang.es.stop_words.STOP_WORDS
     STOPWORDS=list(spacy_stopwords)
-    STOPWORDS.extend(('y','a','u','o','e','quiero'))
+    STOPWORDS.extend(('y','a','u','o','e'))
     tokens = parser(sentence)
     filtered_tokens = []
     for word in tokens:
@@ -75,7 +74,7 @@ def plot_result(result, question):
     plt.tick_params(axis='both', which='major', labelsize=20)
     plt.tick_params(axis='both', which='minor', labelsize=28)
     # plt.imshow(y)
-    plt.show(block=False)
+    plt.show()
 
 def reconocimiento_voz():                                   # graba audio
     r=sr.Recognizer()
@@ -103,20 +102,19 @@ tfidf_matrix_pkl = open('tfidf_matrix.Wed.pkl', 'rb')
 tfidf_matrix = pickle.load(tfidf_matrix_pkl)
 
 while True:
-    #try:
-    print("¿Que quieres de España?")
-    data=reconocimiento_voz()
-    #question = [str(input("¿Que quieres de España?: "))]
-    question = [str(data)]
-    similarities = tfdif_vect(tfidf_matrix, tfidf_vectorizer, question)
-    percentages=to_percent(similarities)
-    plot_result(percentages,question)
-    '''except KeyboardInterrupt:
+
+    try:
+        print("¿Que quieres de España?")
+        data=reconocimiento_voz()
+        #question = [str(input("¿Que quieres de España?: "))]
+        question = [str(data)]
+        #question = [str(input("¿Que quieres de España?: "))]
+        similarities = tfdif_vect(tfidf_matrix, tfidf_vectorizer, question)
+        percentages=to_percent(similarities)
+        plot_result(percentages,question)
+
+
+    except KeyboardInterrupt:
         print('\nexiting...')
         plt.close('all')
-        break'''
-
-
-
-
-
+        break

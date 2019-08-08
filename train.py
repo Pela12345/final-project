@@ -43,7 +43,7 @@ def spacy_tokenizer(sentence):
     parser = Spanish()
     spacy_stopwords = spacy.lang.es.stop_words.STOP_WORDS
     STOPWORDS=list(spacy_stopwords)
-    STOPWORDS.extend(('y','a','u','o','e'))
+    STOPWORDS.extend(('y','a','u','o','e','quiero','España'))
     tokens = parser(sentence)
     filtered_tokens = []
     for word in tokens:
