@@ -90,14 +90,20 @@ tfidf_matrix_pkl = open('tfidf_matrix.Wed.pkl', 'rb')
 tfidf_matrix = pickle.load(tfidf_matrix_pkl)
 
 while True:
-    question = [str(input("¿Que quieres de España?: "))]
-    similarities = tfdif_vect(tfidf_matrix, tfidf_vectorizer, question)
-    percentages=to_percent(similarities)
-    try:
-        plot_result(percentages,question)
-    except ValueError:
-        print('No encuentro ningun partido apropiado, VOTA EN BLANCO')
 
+    try:
+        question = [str(input("¿Que quieres para España?: "))]
+        similarities = tfdif_vect(tfidf_matrix, tfidf_vectorizer, question)
+        percentages=to_percent(similarities)
+        try:
+            plot_result(percentages,question)
+        except ValueError:
+            print('No encuentro ningun partido apropiado, VOTA EN BLANCO')
+
+    except KeyboardInterrupt:
+        print('\nexiting...')
+        plt.close('all')
+        break
 
 
 
